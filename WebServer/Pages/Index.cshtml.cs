@@ -14,7 +14,7 @@ namespace WebServer.Pages
 
         public void OnGet()
         {
-            
+
         }
     }
 }

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Disc_Control
 {
-    internal class Program
+    public class Program
     {
         static async Task Main(string[] args)
         {
@@ -26,7 +26,7 @@ namespace Disc_Control
             Console.WriteLine(skeleton);
         }
 
-        static string Drives()
+        public static string Drives()
         {
             string information = "Drive         FreeSpace (GB)       %FreeSpace       UsedSpace (GB)       TotalSpace (GB)     FileSystem     DriveType          Name       Serial Number\n";
             information += "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\r\n";

@@ -4,9 +4,14 @@
     ViewData["Title"] = "Home page";
 }
 
-<meta http-equiv="refresh" content="2">
-<div class="text-center">
+@using Disc_Control
+@{
+    var ks = 789; 
+}
+<meta http-equiv="refresh" content="1">
+<div class="text-center">  
     <h1 class="display-4">Disc Control</h1>
+    
 </div>
 
 <table>
@@ -19,3 +24,4 @@
         <th>SerialNumber[GB]</th>
     </tr>
 </table>
+<div>@ks</div>
