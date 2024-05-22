@@ -15,18 +15,27 @@ namespace Disc_Control
             int interval = 4;
             while (true)
             {
-                
                 Console.Clear();
                 ReloadDrives();
                 await Task.Delay(interval * 250);
-                
+
+                if (Console.KeyAvailable)
+                {
+                    var key = Console.ReadKey(intercept: true);
+                    if (key.Key == ConsoleKey.X)
+                    {
+                        break; 
+                    }
+                }
             }
         }
+
 
         static void ReloadDrives()
         {
             string skeleton = Drives();
             Console.WriteLine(skeleton);
+            Console.WriteLine("Press X to quit.");
         }
         
 
@@ -60,7 +69,6 @@ namespace Disc_Control
                         
                         if (fsPercentage <= 10)
                         {
-                            
                             Notification.Show(drive.Name, fsPercentage);
                         }
                     }
