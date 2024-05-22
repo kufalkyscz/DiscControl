@@ -10,13 +10,16 @@ namespace Disc_Control
     {
         static async Task Main(string[] args)
         {
+            var serverTask = WebServer.StartServerAsync();
+            WebServer.RestoreConsoleOutput();
             int interval = 4;
             while (true)
             {
+                
                 Console.Clear();
                 ReloadDrives();
                 await Task.Delay(interval * 250);
-
+                
             }
         }
 
@@ -25,6 +28,7 @@ namespace Disc_Control
             string skeleton = Drives();
             Console.WriteLine(skeleton);
         }
+        
 
         public static string Drives()
         {
@@ -72,6 +76,7 @@ namespace Disc_Control
                 information += $"An error occurred: {ex.Message}\n";
             }
             return information;
+            
         }
 
         static string GetDriveSerialNumber(string driveName)
@@ -95,5 +100,6 @@ namespace Disc_Control
             }
             return "Unknown";
         }
+
     }
 }
