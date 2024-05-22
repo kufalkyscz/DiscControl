@@ -51,25 +51,20 @@ namespace Disc_Control
                     string driveInfo = Program.Drives();
                     string disableSubmit = !runServer ? "disabled" : "";
 
-                    // Split the driveInfo string into lines
                     string[] lines = SplitIntoLines(driveInfo);
 
                     StringBuilder htmlBuilder = new StringBuilder();
 
-                    // Add the header and separator lines
                     htmlBuilder.Append("<pre>");
                     htmlBuilder.Append(WebUtility.HtmlEncode(lines[0]));
                     htmlBuilder.Append("<br>");
                     htmlBuilder.Append(WebUtility.HtmlEncode(lines[1]));
                     htmlBuilder.Append("</pre><br>");
 
-                    // Process the data lines
                     for (int i = 2; i < lines.Length; i++)
                     {
-                        // Encode the line
                         string encodedLine = WebUtility.HtmlEncode(lines[i]);
 
-                        // Check if the third column has a number
                         string[] columns = encodedLine.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
                         if (columns.Length > 2 && double.TryParse(columns[2].TrimEnd('%'), out double percentage))
                         {
