@@ -7,6 +7,7 @@ namespace Disc_Control
 {
     internal class Drive
     {
+
         public string Name { get; set; }
         public double FreeSpace { get; set; }
         public double TotalSpace { get; set; }
@@ -99,8 +100,12 @@ namespace Disc_Control
 
         public string ToHTML()
         {
-            string color = FreeSpacePercentage <= 10 ? "red" :
-                           FreeSpacePercentage <= 25 ? "orange" : "lightgreen";
+            var config = new Config();
+            int critical_threshold = config.critical_threshold;
+            int warning_threshold = config.warning_threshold;
+
+            string color = FreeSpacePercentage <= critical_threshold ? "red" :
+                           FreeSpacePercentage <= warning_threshold ? "orange" : "lightgreen";
 
             return $@"
             <div style=""background-color:{color}; margin-bottom: 10px; padding: 10px; border: 1px solid black;"">
