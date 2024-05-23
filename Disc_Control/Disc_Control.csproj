@@ -81,6 +81,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Drive.cs" />
     <Compile Include="DualWriter.cs" />
     <Compile Include="Notification.cs" />
     <Compile Include="Program.cs" />

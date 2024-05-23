@@ -1,8 +1,7 @@
-﻿using Microsoft.Toolkit.Uwp.Notifications;
-using System;
-using System.IO;
-using System.Management;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using Windows.UI.Xaml.Controls;
 
 namespace Disc_Control
 {
@@ -24,12 +23,11 @@ namespace Disc_Control
                     var key = Console.ReadKey(intercept: true);
                     if (key.Key == ConsoleKey.X)
                     {
-                        break; 
+                        break;
                     }
                 }
-            } 
+            }
         }
-
 
         static void ReloadDrives()
         {
@@ -37,7 +35,6 @@ namespace Disc_Control
             Console.WriteLine(skeleton);
             Console.WriteLine("Press X to quit.");
         }
-        
 
         public static string Drives()
         {
@@ -45,36 +42,22 @@ namespace Disc_Control
             information += "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\r\n";
             try
             {
-                DriveInfo[] drives = DriveInfo.GetDrives();
-                if (drives.Length == 0)
-                {
-                    information += "No drives found.\n";
-                }
-                foreach (DriveInfo drive in drives)
+                var drives = Drive.GetDrives();
+                foreach (var drive in drives.Values)
                 {
                     string driveInfo;
-                    string serialNumber = GetDriveSerialNumber(drive.Name);
-                    if (drive.IsReady)
+                    if (drive.FreeSpacePercentage != 0)
                     {
-                        double freeSpace = drive.AvailableFreeSpace / (1024 * 1024 * 1024.0);
-                        double totalSpace = drive.TotalSize / (1024 * 1024 * 1024.0);
-                        double usedSpace = totalSpace - freeSpace;
-                        double fsPercentage = (freeSpace / totalSpace) * 100;
-                        string fileSystem = drive.DriveFormat;
-                        string driveType = drive.DriveType.ToString();
-                        string driveName = string.IsNullOrEmpty(drive.VolumeLabel) ? "Unnamed" : drive.VolumeLabel;
+                        driveInfo = $"{drive.Name,-10} {drive.FreeSpace,15:F2}  {drive.FreeSpacePercentage,15:F2}% {drive.UsedSpace,20:F2} {drive.TotalSpace,15:F2}  {drive.FileSystem,15}  {drive.DriveType,15}  {drive.VolumeLabel,15}  {drive.SerialNumber,15}";
 
-                        driveInfo = $"{drive.Name,-10} {freeSpace,15:F2}  {fsPercentage,15:F2}% {usedSpace,20:F2} {totalSpace,15:F2}  {fileSystem,15}  {driveType,15}  {driveName,15}  {serialNumber,15}";
-
-                        
-                        if (fsPercentage <= 10)
+                        if (drive.FreeSpacePercentage <= 10)
                         {
-                            Notification.Show(drive.Name, fsPercentage);
+                            Notification.Show(drive.Name, drive.FreeSpacePercentage);
                         }
                     }
                     else
                     {
-                        driveInfo = $"{drive.Name,-10} {"N/A",15}  {"N/A",15} {"N/A",20} {"N/A",15}  {"N/A",15}  {drive.DriveType.ToString(),15}  {"Not Found",15}  {serialNumber,15}";
+                        driveInfo = $"{drive.Name,-10} {"N/A",15}  {"N/A",15} {"N/A",20} {"N/A",15}  {"N/A",15}  {drive.DriveType,15}  {"Not Found",15}  {drive.SerialNumber,15}";
                     }
                     information += driveInfo + "\n";
                 }
@@ -84,30 +67,6 @@ namespace Disc_Control
                 information += $"An error occurred: {ex.Message}\n";
             }
             return information;
-            
         }
-
-        static string GetDriveSerialNumber(string driveName)
-        {
-            try
-            {
-                if (!driveName.EndsWith("\\"))
-                {
-                    driveName += "\\";
-                }
-
-                ManagementObjectSearcher searcher = new ManagementObjectSearcher($"SELECT VolumeSerialNumber FROM Win32_LogicalDisk WHERE DeviceID = '{driveName.Substring(0, 2)}'");
-                foreach (ManagementObject vol in searcher.Get())
-                {
-                    return vol["VolumeSerialNumber"]?.ToString() ?? "Unknown";
-                }
-            }
-            catch (Exception)
-            {
-                return "Error";
-            }
-            return "Unknown";
-        }
-
     }
 }

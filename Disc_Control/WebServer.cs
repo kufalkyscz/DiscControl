@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
-using Windows.Graphics.Display;
 
 namespace Disc_Control
 {
@@ -27,7 +25,7 @@ namespace Disc_Control
             "  <body>" +
             "    <h1>Drive Information</h1>" +
             "    <p>Page Views: {0}</p>" +
-            "    <pre>{1}</pre>" +
+            "    <div>{1}</div>" +
             "  </body>" +
             "</html>";
 
@@ -48,52 +46,12 @@ namespace Disc_Control
                 }
                 else
                 {
-                    string driveInfo = Program.Drives();
-                    string disableSubmit = !runServer ? "disabled" : "";
-
-                    string[] lines = SplitIntoLines(driveInfo);
-
+                    var drives = Drive.GetDrives();
                     StringBuilder htmlBuilder = new StringBuilder();
 
-                    htmlBuilder.Append("<pre>");
-                    htmlBuilder.Append(WebUtility.HtmlEncode(lines[0]));
-                    htmlBuilder.Append("<br>");
-                    htmlBuilder.Append(WebUtility.HtmlEncode(lines[1]));
-                    htmlBuilder.Append("</pre><br>");
-
-                    for (int i = 2; i < lines.Length; i++)
+                    foreach (var drive in drives.Values)
                     {
-                        string encodedLine = WebUtility.HtmlEncode(lines[i]);
-
-                        string[] columns = encodedLine.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                        if (columns.Length > 2 && double.TryParse(columns[2].TrimEnd('%'), out double percentage))
-                        {
-                            if (percentage <= 10)
-                            {
-                                htmlBuilder.Append("<span style=\"background-color:red;\"><strong>");
-                                htmlBuilder.Append(encodedLine);
-                                htmlBuilder.Append("</strong></span>");
-                            }
-                            else if (percentage > 10 && percentage <= 25)
-                            {
-                                htmlBuilder.Append("<span style=\"background-color:orange;\"><strong>");
-                                htmlBuilder.Append(encodedLine);
-                                htmlBuilder.Append("</strong></span>");
-                            }
-                            else if (percentage > 25)
-                            {
-                                htmlBuilder.Append("<span style=\"background-color:lightgreen;\"><strong>");
-                                htmlBuilder.Append(encodedLine);
-                                htmlBuilder.Append("</strong></span>");
-                            }
-                        }
-                        else
-                        {
-                            htmlBuilder.Append("<span style=\"color:black;\">");
-                            htmlBuilder.Append(encodedLine);
-                            htmlBuilder.Append("</span>");
-                        }
-                        htmlBuilder.Append("<br>");
+                        htmlBuilder.Append(drive.ToHTML());
                     }
 
                     byte[] data;
@@ -119,39 +77,6 @@ namespace Disc_Control
                     resp.Close();
                 }
             }
-        }
-
-        private static string[] SplitIntoLines(string text)
-        {
-            var lines = text.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
-
-            if (lines.Length < 2) return lines;
-
-            var header = lines[0];
-            var separator = lines[1];
-            var dataLines = lines.Skip(2).ToArray();
-
-            var result = new List<string> { header, separator };
-            result.AddRange(dataLines);
-
-            return result.ToArray();
-        }
-
-
-        private static bool ContainsNumber10OrLess(string line)
-        {
-            foreach (char c in line)
-            {
-                if (char.IsDigit(c))
-                {
-                    int number = int.Parse(c.ToString());
-                    if (number <= 10)
-                    {
-                        return true;
-                    }
-                }
-            }
-            return false;
         }
 
         public static async Task StartServerAsync()
