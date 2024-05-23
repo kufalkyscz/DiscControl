@@ -32,6 +32,10 @@ namespace Disc_Control
         public static async Task HandleIncomingConnections()
         {
             bool runServer = true;
+            var config = new Config();
+            int critical_threshold = config.critical_threshold;
+            int warning_threshold = config.warning_threshold;
+            int interval = config.interval;
 
             while (runServer)
             {
@@ -48,7 +52,8 @@ namespace Disc_Control
                 {
                     var drives = Drive.GetDrives();
                     StringBuilder htmlBuilder = new StringBuilder();
-
+                    
+                    htmlBuilder.Append($"Interval: {interval}s, Warning threshold: {warning_threshold}%, Critical threshold: {critical_threshold}%, Url: {url}");
                     foreach (var drive in drives.Values)
                     {
                         htmlBuilder.Append(drive.ToHTML());
