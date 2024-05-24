@@ -10,6 +10,7 @@ namespace Disc_Control
 
         public static void Show(string driveName, double fsPercentage)
         {
+            
             if (ShouldNotify(driveName, fsPercentage))
             {
                 new ToastContentBuilder()
