@@ -6,9 +6,12 @@ namespace Disc_Control
 {
     internal class Config
     {
-        public int interval { get; private set; }
-        public int critical_threshold { get; private set; }
-        public int warning_threshold { get; private set; }
+        public int Interval { get; private set; }
+        public int CriticalThreshold { get; private set; }
+        public int WarningThreshold { get; private set; }
+        public int Port { get; private set; }
+        public bool GlobalDriveConfig { get; private set; }
+        public bool ShowNetworkDrives { get; private set; }
 
         public Config()
         {
@@ -26,9 +29,12 @@ namespace Disc_Control
             {
                 var defaultConfig = new ConfigData
                 {
-                    interval = 1,
-                    critical_threshold = 10,
-                    warning_threshold = 25
+                    Interval = 1,
+                    CriticalThreshold = 10,
+                    WarningThreshold = 25,
+                    Port = 8000,
+                    GlobalDriveConfig = true,
+                    ShowNetworkDrives = true,
                 };
 
                 string jsonString = JsonSerializer.Serialize(defaultConfig, new JsonSerializerOptions { WriteIndented = true });
@@ -51,9 +57,12 @@ namespace Disc_Control
 
                 if (configData != null)
                 {
-                    interval = configData.interval;
-                    critical_threshold = configData.critical_threshold;
-                    warning_threshold = configData.warning_threshold;
+                    Interval = configData.Interval;
+                    CriticalThreshold = configData.CriticalThreshold;
+                    WarningThreshold = configData.WarningThreshold;
+                    Port = configData.Port;
+                    GlobalDriveConfig = configData.GlobalDriveConfig;
+                    ShowNetworkDrives = configData.ShowNetworkDrives;
                 }
             }
             catch (FileNotFoundException)
@@ -72,9 +81,12 @@ namespace Disc_Control
 
         private class ConfigData
         {
-            public int interval { get; set; }
-            public int critical_threshold { get; set; }
-            public int warning_threshold { get; set; }
+            public int Interval { get; set; }
+            public int CriticalThreshold { get; set; }
+            public int WarningThreshold { get; set; }
+            public int Port { get; set; }
+            public bool GlobalDriveConfig { get; set; }
+            public bool ShowNetworkDrives { get; set; }
         }
     }
 }

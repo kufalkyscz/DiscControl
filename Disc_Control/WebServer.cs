@@ -1,21 +1,23 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using System.Xml;
 
 namespace Disc_Control
 {
     internal class WebServer
     {
-        public static HttpListener listener;
-        public static string url = "http://localhost:8000/";
-        public static int pageViews = 0;
+        public static HttpListener Listener;
+        public static string Url;
+        public static int PageViews = 0;
         private static StringWriter consoleOutput = new StringWriter();
         private static DualWriter dualWriter;
 
-        public static string pageData =
+        public static string PageData =
             "<!DOCTYPE html>" +
             "<html>" +
             "  <head>" +
@@ -24,22 +26,25 @@ namespace Disc_Control
             "  </head>" +
             "  <body>" +
             "    <h1>Drive Information</h1>" +
+            "    <h3>Configuration</h3>" +
+            "    <pre>{2}</pre>" + 
             "    <p>Page Views: {0}</p>" +
+            "    <h3>Drive information</h3>" +
             "    <div>{1}</div>" +
             "  </body>" +
             "</html>";
 
         public static async Task HandleIncomingConnections()
         {
+            string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
+            string projectDirectory = Directory.GetParent(baseDirectory).Parent.Parent.FullName;
+            string configPath = Path.Combine(projectDirectory, "config.json");
             bool runServer = true;
             var config = new Config();
-            int critical_threshold = config.critical_threshold;
-            int warning_threshold = config.warning_threshold;
-            int interval = config.interval;
 
             while (runServer)
             {
-                HttpListenerContext ctx = await listener.GetContextAsync();
+                HttpListenerContext ctx = await Listener.GetContextAsync();
 
                 HttpListenerRequest req = ctx.Request;
                 HttpListenerResponse resp = ctx.Response;
@@ -52,17 +57,18 @@ namespace Disc_Control
                 {
                     var drives = Drive.GetDrives();
                     StringBuilder htmlBuilder = new StringBuilder();
-                    
-                    htmlBuilder.Append($"Interval: {interval}s, Warning threshold: {warning_threshold}%, Critical threshold: {critical_threshold}%, Url: {url}");
+
                     foreach (var drive in drives.Values)
                     {
                         htmlBuilder.Append(drive.ToHTML());
                     }
 
+                    string configContent = File.ReadAllText(configPath);
+
                     byte[] data;
                     if (req.Url.AbsolutePath == "/")
                     {
-                        data = Encoding.UTF8.GetBytes(string.Format(pageData, ++pageViews, htmlBuilder.ToString()));
+                        data = Encoding.UTF8.GetBytes(string.Format(PageData, ++PageViews, htmlBuilder.ToString(), configContent));
                     }
                     else if (req.Url.AbsolutePath == "/drive-info")
                     {
@@ -86,10 +92,12 @@ namespace Disc_Control
 
         public static async Task StartServerAsync()
         {
-            listener = new HttpListener();
-            listener.Prefixes.Add(url);
-            listener.Start();
-            Console.WriteLine("Listening for connections on {0}", url);
+            var config = new Config();
+            Url = $"http://localhost:{config.Port}/";
+            Listener = new HttpListener();
+            Listener.Prefixes.Add(Url);
+            Listener.Start();
+            Console.WriteLine("Listening for connections on {0}", Url);
 
             dualWriter = new DualWriter(Console.Out, consoleOutput);
             Console.SetOut(dualWriter);
@@ -97,7 +105,7 @@ namespace Disc_Control
 
             await HandleIncomingConnections();
 
-            listener.Close();
+            Listener.Close();
             Console.WriteLine("Server has shut down.");
         }
 

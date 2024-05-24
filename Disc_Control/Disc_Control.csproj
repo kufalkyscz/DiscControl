@@ -82,8 +82,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Config.cs" />
-    <Compile Include="ConfigData.cs" />
     <Compile Include="Drive.cs" />
+    <Compile Include="DrivesConfig.cs" />
     <Compile Include="DualWriter.cs" />
     <Compile Include="Notification.cs" />
     <Compile Include="Program.cs" />

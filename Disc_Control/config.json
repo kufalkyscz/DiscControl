@@ -1,5 +1,8 @@
 {
-  "interval": 1,
-  "critical_threshold": 10,
-  "warning_threshold": 25 
+  "Interval": 1,
+  "CriticalThreshold": 10,
+  "WarningThreshold": 25,
+  "Port": 8000,
+  "GlobalDriveConfig": true,
+  "ShowNetworkDrives":  true
 }
