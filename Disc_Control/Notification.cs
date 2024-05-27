@@ -28,45 +28,86 @@ namespace Disc_Control
 
         public static void Show(string volumeLabel, double fsPercentage)
         {
-            if (ShouldNotify(volumeLabel, fsPercentage))
+            if (ShouldNotify(volumeLabel))
             {
-                string message = $"Drive '{volumeLabel}' has reached a critical threshold of {fsPercentage:F2}% free space.";
+                EventLogEntryType? logType = DetermineLogType(volumeLabel, fsPercentage);
 
-                new ToastContentBuilder()
-                    .AddArgument("action", "viewConversation")
-                    .AddArgument("conversationId", 9813)
-                    .AddText(message)
-                    .Show();
+                if (logType.HasValue)
+                {
+                    string message = $"Drive '{volumeLabel}' has reached {fsPercentage:F2}% of free space.";
+                    new ToastContentBuilder()
+                        .AddArgument("action", "viewConversation")
+                        .AddArgument("conversationId", 9813)
+                        .AddText(message)
+                        .Show();
 
-                LogToEventViewer(message);
+                    LogToEventViewer(message, logType.Value);
 
-                LastNotifiedPercentages[volumeLabel] = fsPercentage;
+                    LastNotifiedPercentages[volumeLabel] = fsPercentage;
+                }
             }
         }
 
-        private static bool ShouldNotify(string volumeLabel, double fsPercentage)
+        private static bool ShouldNotify(string volumeLabel)
         {
+            return !LastNotifiedPercentages.ContainsKey(volumeLabel);
+        }
+
+        private static EventLogEntryType? DetermineLogType(string volumeLabel, double fsPercentage)
+        {
+            var config = new Config();
+            int WarningThreshold = config.WarningThreshold;
+            int CriticalThreshold = config.CriticalThreshold;
             if (!LastNotifiedPercentages.ContainsKey(volumeLabel))
             {
-                return true;
+                if (fsPercentage > WarningThreshold)
+                {
+                    LastNotifiedPercentages[volumeLabel] = fsPercentage;
+                    return EventLogEntryType.Information;
+                }
+                else if (fsPercentage <= WarningThreshold && fsPercentage > CriticalThreshold)
+                {
+                    LastNotifiedPercentages[volumeLabel] = fsPercentage;
+                    return EventLogEntryType.Warning;
+                }
             }
 
-            return false;
-        }
-        /* private static bool ResetNotify(string driveName, double fsPercentage)
-        {
-            if (LastNotifiedPercentages.ContainsKey(driveName) && LastNotifiedPercentages[driveName] < fsPercentage)
+            double lastPercentage = LastNotifiedPercentages[volumeLabel];
+
+            EventLogEntryType logType;
+
+            if (lastPercentage > WarningThreshold && fsPercentage <= WarningThreshold && fsPercentage > CriticalThreshold)
             {
-                LastNotifiedPercentages.Remove(driveName);
-                return true;
+                logType = EventLogEntryType.Warning;
             }
-            return false;
-        }*/
-        static void LogToEventViewer(string message)
+            else if (lastPercentage > CriticalThreshold && fsPercentage <= CriticalThreshold)
+            {
+                logType = EventLogEntryType.Warning;
+            }
+            else if (lastPercentage <= CriticalThreshold && fsPercentage > CriticalThreshold)
+            {
+                logType = EventLogEntryType.Information;
+            }
+            else if (lastPercentage <= WarningThreshold && fsPercentage > WarningThreshold)
+            {
+                logType = EventLogEntryType.Information;
+            }
+            else
+            {
+                logType = EventLogEntryType.Information;
+            }
+
+            LastNotifiedPercentages[volumeLabel] = fsPercentage;
+
+            return logType;
+        }
+
+        static void LogToEventViewer(string message, EventLogEntryType logType)
         {
             try
             {
-                EventLog.WriteEntry(EventSourceName, message, EventLogEntryType.Warning);
+                EventLog.WriteEntry(EventSourceName, message, logType);
+                Console.WriteLine($"Logged to event viewer: {message} as {logType}");
             }
             catch (Exception ex)
             {

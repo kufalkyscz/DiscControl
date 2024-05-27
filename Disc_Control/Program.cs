@@ -18,7 +18,7 @@ namespace Disc_Control
             WebServer.RestoreConsoleOutput();
             while (true)
             {
-              //  Console.Clear();
+                Console.Clear();
                 ReloadDrives();
                 await Task.Delay(interval * 1000);
 
