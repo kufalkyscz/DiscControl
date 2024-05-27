@@ -1,5 +1,4 @@
 {
-  //If Network drives are not ready, then the correct one to put false to is ShowUnreadyDrives
   "Interval": 1,
   "CriticalThreshold": 10,
   "WarningThreshold": 25,
