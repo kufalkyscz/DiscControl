@@ -26,11 +26,11 @@ namespace Disc_Control
             }
         }
 
-        public static void Show(string driveName, double fsPercentage)
+        public static void Show(string volumeLabel, double fsPercentage)
         {
-            if (ShouldNotify(driveName, fsPercentage))
+            if (ShouldNotify(volumeLabel, fsPercentage))
             {
-                string message = $"Drive '{driveName}' has reached a critical threshold of {fsPercentage:F2}% free space.";
+                string message = $"Drive '{volumeLabel}' has reached a critical threshold of {fsPercentage:F2}% free space.";
 
                 new ToastContentBuilder()
                     .AddArgument("action", "viewConversation")
@@ -40,29 +40,28 @@ namespace Disc_Control
 
                 LogToEventViewer(message);
 
-                LastNotifiedPercentages[driveName] = fsPercentage;
+                LastNotifiedPercentages[volumeLabel] = fsPercentage;
             }
         }
 
-        private static bool ShouldNotify(string driveName, double fsPercentage)
+        private static bool ShouldNotify(string volumeLabel, double fsPercentage)
         {
-            if (!LastNotifiedPercentages.ContainsKey(driveName) || LastNotifiedPercentages[driveName] != fsPercentage)
+            if (!LastNotifiedPercentages.ContainsKey(volumeLabel))
             {
                 return true;
             }
+
             return false;
         }
-        /*
-        private static bool ResetNotify(string driveName, double fsPercentage)
+        /* private static bool ResetNotify(string driveName, double fsPercentage)
         {
-            if (LastNotifiedPercentages[driveName] < fsPercentage)
+            if (LastNotifiedPercentages.ContainsKey(driveName) && LastNotifiedPercentages[driveName] < fsPercentage)
             {
                 LastNotifiedPercentages.Remove(driveName);
                 return true;
             }
             return false;
-        }
-        */
+        }*/
         static void LogToEventViewer(string message)
         {
             try

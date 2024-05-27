@@ -89,7 +89,7 @@ namespace Disc_Control
 
                 foreach (DriveInfo drive in drives)
                 {
-                    string driveIdentifier = $"{drive.Name.TrimEnd('\\')}";
+                    string driveIdentifier = $"{drive.Name}";
                     if (!drivesConfig.ContainsKey(driveIdentifier))
                     {
                         drivesConfig.Add(driveIdentifier, BasicValue);

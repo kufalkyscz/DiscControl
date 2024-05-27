@@ -21,22 +21,24 @@ namespace Disc_Control
         public static Dictionary<string, Drive> GetDrives()
         {
             var config = new Config();
-            bool ShowUnreadyDrives = config.ShowUnreadyDrives;
+            bool showUnreadyDrives = config.ShowUnreadyDrives;
+            int criticalThreshold = config.CriticalThreshold;
+            bool showNetworkDrives = config.ShowNetworkDrives;
 
             var drivesDict = new Dictionary<string, Drive>();
             DriveInfo[] drives = DriveInfo.GetDrives();
             foreach (var driveInfo in drives)
             {
-                if (driveInfo.IsReady)
+                if (driveInfo.IsReady || (showNetworkDrives && (driveInfo.DriveType == System.IO.DriveType.Network)) || (!driveInfo.IsReady && showUnreadyDrives))
                 {
                     string serialNumber = GetDriveSerialNumber(driveInfo.Name);
-                    double freeSpace = driveInfo.AvailableFreeSpace / (1024 * 1024 * 1024.0);
-                    double totalSpace = driveInfo.TotalSize / (1024 * 1024 * 1024.0);
+                    double freeSpace = driveInfo.IsReady ? driveInfo.AvailableFreeSpace / (1024 * 1024 * 1024.0) : 0;
+                    double totalSpace = driveInfo.IsReady ? driveInfo.TotalSize / (1024 * 1024 * 1024.0) : 0;
                     double usedSpace = totalSpace - freeSpace;
-                    double fsPercentage = (freeSpace / totalSpace) * 100;
-                    string fileSystem = driveInfo.DriveFormat;
+                    double fsPercentage = driveInfo.IsReady ? (freeSpace / totalSpace) * 100 : 0;
+                    string fileSystem = driveInfo.IsReady ? driveInfo.DriveFormat : "N/A";
                     string driveType = driveInfo.DriveType.ToString();
-                    string volumeLabel = string.IsNullOrEmpty(driveInfo.VolumeLabel) ? "Unnamed" : driveInfo.VolumeLabel;
+                    string volumeLabel = driveInfo.IsReady ? (string.IsNullOrEmpty(driveInfo.VolumeLabel) ? "Unnamed" : driveInfo.VolumeLabel) : "Not Found";
 
                     var drive = new Drive
                     {
@@ -54,34 +56,14 @@ namespace Disc_Control
                     string uniqueKey = driveInfo.Name;
                     drivesDict[uniqueKey] = drive;
 
-                    if (fsPercentage <= 10)
+                    if (fsPercentage <= criticalThreshold && driveInfo.IsReady)
                     {
                         Notification.Show(drive.Name, fsPercentage);
                     }
                 }
-                else if (ShowUnreadyDrives == true)
-                {
-                    string serialNumber = GetDriveSerialNumber(driveInfo.Name);
-                    var drive = new Drive
-                    {
-                        Name = driveInfo.Name,
-                        FreeSpace = 0,
-                        TotalSpace = 0,
-                        UsedSpace = 0,
-                        FreeSpacePercentage = 0,
-                        FileSystem = "N/A",
-                        DriveType = driveInfo.DriveType.ToString(),
-                        VolumeLabel = "Not Found",
-                        SerialNumber = serialNumber
-                    };
-
-                    string uniqueKey = driveInfo.Name; 
-                    drivesDict[uniqueKey] = drive;
-                }
             }
             return drivesDict;
         }
-
         private static string GetDriveSerialNumber(string driveName)
         {
             try
@@ -129,8 +111,6 @@ namespace Disc_Control
 
         public static string ToConsole()
         {
-            var config = new Config();
-            var critical_threshold = config.CriticalThreshold;
 
             string information = "Drive         FreeSpace (GB)       %FreeSpace       UsedSpace (GB)       TotalSpace (GB)     FileSystem     DriveType          Name       Serial Number\n";
             information += "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\r\n";
@@ -145,10 +125,6 @@ namespace Disc_Control
 
                         driveInfo = $"{drive.Name,-10} {drive.FreeSpace,15:F2}  {drive.FreeSpacePercentage,15:F2}% {drive.UsedSpace,20:F2} {drive.TotalSpace,15:F2}  {drive.FileSystem,15}  {drive.DriveType,15}  {drive.VolumeLabel,15}  {drive.SerialNumber,15}";
 
-                        if (drive.FreeSpacePercentage <= critical_threshold)
-                        {
-                            Notification.Show(drive.Name, drive.FreeSpacePercentage);
-                        }
                     }
                     else
                     {
@@ -165,4 +141,3 @@ namespace Disc_Control
         }
     }
 }
-        
