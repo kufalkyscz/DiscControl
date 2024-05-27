@@ -4,5 +4,6 @@
   "WarningThreshold": 25,
   "Port": 8000,
   "GlobalDriveConfig": true,
-  "ShowNetworkDrives":  true
+  "ShowNetworkDrives": true,
+  "ShowUnreadyDrives": false
 }

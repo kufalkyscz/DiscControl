@@ -2,12 +2,12 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Management;
+using System.Xml.Schema;
 
 namespace Disc_Control
 {
     internal class Drive
     {
-
         public string Name { get; set; }
         public double FreeSpace { get; set; }
         public double TotalSpace { get; set; }
@@ -20,13 +20,16 @@ namespace Disc_Control
 
         public static Dictionary<string, Drive> GetDrives()
         {
+            var config = new Config();
+            bool ShowUnreadyDrives = config.ShowUnreadyDrives;
+
             var drivesDict = new Dictionary<string, Drive>();
             DriveInfo[] drives = DriveInfo.GetDrives();
             foreach (var driveInfo in drives)
             {
-                string serialNumber = GetDriveSerialNumber(driveInfo.Name);
                 if (driveInfo.IsReady)
                 {
+                    string serialNumber = GetDriveSerialNumber(driveInfo.Name);
                     double freeSpace = driveInfo.AvailableFreeSpace / (1024 * 1024 * 1024.0);
                     double totalSpace = driveInfo.TotalSize / (1024 * 1024 * 1024.0);
                     double usedSpace = totalSpace - freeSpace;
@@ -48,15 +51,17 @@ namespace Disc_Control
                         SerialNumber = serialNumber
                     };
 
-                    drivesDict[serialNumber] = drive;
+                    string uniqueKey = driveInfo.Name;
+                    drivesDict[uniqueKey] = drive;
 
                     if (fsPercentage <= 10)
                     {
                         Notification.Show(drive.Name, fsPercentage);
                     }
                 }
-                else
+                else if (ShowUnreadyDrives == true)
                 {
+                    string serialNumber = GetDriveSerialNumber(driveInfo.Name);
                     var drive = new Drive
                     {
                         Name = driveInfo.Name,
@@ -70,12 +75,13 @@ namespace Disc_Control
                         SerialNumber = serialNumber
                     };
 
-                    drivesDict[serialNumber] = drive;
+                    string uniqueKey = driveInfo.Name; 
+                    drivesDict[uniqueKey] = drive;
                 }
             }
             return drivesDict;
         }
-        
+
         private static string GetDriveSerialNumber(string driveName)
         {
             try

@@ -11,6 +11,7 @@ namespace Disc_Control
         static async Task Main(string[] args)
         {
             var config = new Config();
+            var driveconfig = new DrivesConfig();
             int interval = config.Interval;
 
             var serverTask = WebServer.StartServerAsync();
