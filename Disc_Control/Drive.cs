@@ -92,11 +92,13 @@ namespace Disc_Control
             int critical_threshold = config.CriticalThreshold;
             int warning_threshold = config.WarningThreshold;
 
-            string color = FreeSpacePercentage <= critical_threshold ? "red" :
-                           FreeSpacePercentage <= warning_threshold ? "orange" : "lightgreen";
+
+
+            string color = FreeSpacePercentage <= critical_threshold ? "critical_threshold" :
+                           FreeSpacePercentage <= warning_threshold ? "warning_threshold" : "normal";
 
             return $@"
-            <div style=""background-color:{color}; margin-bottom: 10px; padding: 10px; border: 1px solid black;"">
+            <div class=""{color}"" style=""margin-bottom: 10px; padding: 10px; border: 1px solid black;"">
                 <strong>Drive Name:</strong> {Name}<br>
                 <strong>Free Space (GB):</strong> {FreeSpace:F2}<br>
                 <strong>Free Space Percentage:</strong> {FreeSpacePercentage:F2}%<br>

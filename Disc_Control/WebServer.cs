@@ -2,10 +2,8 @@
 using System.IO;
 using System.Net;
 using System.Text;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Threading.Tasks;
-using System.Xml;
+using dotless.Core;
 
 namespace Disc_Control
 {
@@ -23,14 +21,15 @@ namespace Disc_Control
             "  <head>" +
             "    <title>Drive Information</title>" +
             "    <meta http-equiv=\"refresh\" content=\"1\">" +
+            "    <style>{3}</style>" +
             "  </head>" +
             "  <body>" +
             "    <h1>Drive Information</h1>" +
             "    <h3>Configuration</h3>" +
-            "    <pre>{2}</pre>" + 
-            "    <p>Page Views: {0}</p>" +
+            "    <pre class=\"config\">{2}</pre>" +
+            "    <p>Number of refreshes: {0}</p>" +
             "    <h3>Drive information</h3>" +
-            "    <div>{1}</div>" +
+            "    <div class=\"container\">{1}</div>" + 
             "  </body>" +
             "</html>";
 
@@ -39,6 +38,8 @@ namespace Disc_Control
             string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
             string projectDirectory = Directory.GetParent(baseDirectory).Parent.Parent.FullName;
             string configPath = Path.Combine(projectDirectory, "config.json");
+            string lessFilePath = Path.Combine(projectDirectory, "main.less");
+
             bool runServer = true;
             var config = new Config();
 
@@ -64,11 +65,12 @@ namespace Disc_Control
                     }
 
                     string configContent = File.ReadAllText(configPath);
+                    string cssContent = GetCssFromLess(lessFilePath);
 
                     byte[] data;
                     if (req.Url.AbsolutePath == "/")
                     {
-                        data = Encoding.UTF8.GetBytes(string.Format(PageData, ++PageViews, htmlBuilder.ToString(), configContent));
+                        data = Encoding.UTF8.GetBytes(string.Format(PageData, ++PageViews, htmlBuilder.ToString(), configContent, cssContent));
                     }
                     else if (req.Url.AbsolutePath == "/drive-info")
                     {
@@ -115,6 +117,12 @@ namespace Disc_Control
             Console.SetOut(standardOutput);
             var standardError = new StreamWriter(Console.OpenStandardError()) { AutoFlush = true };
             Console.SetError(standardError);
+        }
+
+        private static string GetCssFromLess(string lessFilePath)
+        {
+            string lessContent = File.ReadAllText(lessFilePath);
+            return Less.Parse(lessContent);
         }
     }
 }
