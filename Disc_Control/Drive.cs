@@ -56,7 +56,7 @@ namespace Disc_Control
                     string uniqueKey = driveInfo.Name;
                     drivesDict[uniqueKey] = drive;
 
-                    if (fsPercentage <= criticalThreshold && driveInfo.IsReady)
+                    if (driveInfo.IsReady)
                     {
                         Notification.Show(drive.Name, fsPercentage);
                     }

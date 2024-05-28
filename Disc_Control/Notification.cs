@@ -28,7 +28,7 @@ namespace Disc_Control
 
         public static void Show(string volumeLabel, double fsPercentage)
         {
-            if (ShouldNotify(volumeLabel))
+            if (ShouldNotify(volumeLabel, fsPercentage))
             {
                 EventLogEntryType? logType = DetermineLogType(volumeLabel, fsPercentage);
 
@@ -48,9 +48,23 @@ namespace Disc_Control
             }
         }
 
-        private static bool ShouldNotify(string volumeLabel)
+        private static bool ShouldNotify(string volumeLabel, double fsPercentage)
         {
-            return !LastNotifiedPercentages.ContainsKey(volumeLabel);
+            if (!LastNotifiedPercentages.ContainsKey(volumeLabel))
+            {
+                return true;
+            }
+
+            double lastPercentage = LastNotifiedPercentages[volumeLabel];
+            var config = new Config();
+            int WarningThreshold = config.WarningThreshold;
+            int CriticalThreshold = config.CriticalThreshold;
+
+            return (lastPercentage > WarningThreshold && fsPercentage <= WarningThreshold) ||
+                   (lastPercentage > CriticalThreshold && fsPercentage <= CriticalThreshold) ||
+                   (lastPercentage <= CriticalThreshold && fsPercentage > CriticalThreshold) ||
+                   (lastPercentage <= WarningThreshold && fsPercentage > WarningThreshold) ||
+                   (lastPercentage <= CriticalThreshold && fsPercentage > WarningThreshold);
         }
 
         private static EventLogEntryType? DetermineLogType(string volumeLabel, double fsPercentage)
@@ -58,48 +72,27 @@ namespace Disc_Control
             var config = new Config();
             int WarningThreshold = config.WarningThreshold;
             int CriticalThreshold = config.CriticalThreshold;
-            if (!LastNotifiedPercentages.ContainsKey(volumeLabel))
+
+            double lastPercentage = LastNotifiedPercentages.ContainsKey(volumeLabel) ? LastNotifiedPercentages[volumeLabel] : double.MaxValue;
+
+            if (fsPercentage <= CriticalThreshold)
             {
-                if (fsPercentage > WarningThreshold)
+                return EventLogEntryType.Warning;
+            }
+            if (fsPercentage <= WarningThreshold)
+            {
+                if (lastPercentage <= CriticalThreshold && fsPercentage > CriticalThreshold)
                 {
-                    LastNotifiedPercentages[volumeLabel] = fsPercentage;
-                    return EventLogEntryType.Information;
+                    return EventLogEntryType.Information; 
                 }
-                else if (fsPercentage <= WarningThreshold && fsPercentage > CriticalThreshold)
-                {
-                    LastNotifiedPercentages[volumeLabel] = fsPercentage;
-                    return EventLogEntryType.Warning;
-                }
+                return EventLogEntryType.Warning;
+            }
+            if (fsPercentage > WarningThreshold)
+            {
+                return EventLogEntryType.Information;
             }
 
-            double lastPercentage = LastNotifiedPercentages[volumeLabel];
-
-            EventLogEntryType logType;
-
-            if (lastPercentage > WarningThreshold && fsPercentage <= WarningThreshold && fsPercentage > CriticalThreshold)
-            {
-                logType = EventLogEntryType.Warning;
-            }
-            else if (lastPercentage > CriticalThreshold && fsPercentage <= CriticalThreshold)
-            {
-                logType = EventLogEntryType.Warning;
-            }
-            else if (lastPercentage <= CriticalThreshold && fsPercentage > CriticalThreshold)
-            {
-                logType = EventLogEntryType.Information;
-            }
-            else if (lastPercentage <= WarningThreshold && fsPercentage > WarningThreshold)
-            {
-                logType = EventLogEntryType.Information;
-            }
-            else
-            {
-                logType = EventLogEntryType.Information;
-            }
-
-            LastNotifiedPercentages[volumeLabel] = fsPercentage;
-
-            return logType;
+            return null; 
         }
 
         static void LogToEventViewer(string message, EventLogEntryType logType)
@@ -114,5 +107,5 @@ namespace Disc_Control
                 Console.WriteLine($"Error writing to event log: {ex.Message}");
             }
         }
-    }
+    }    
 }
