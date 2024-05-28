@@ -13,6 +13,7 @@ namespace Disc_Control
         public bool GlobalDriveConfig { get; private set; }
         public bool ShowNetworkDrives { get; private set; }
         public bool ShowUnreadyDrives { get; private set; }
+        public bool LongVersion { get; private set; }
 
         public Config()
         {
@@ -36,7 +37,8 @@ namespace Disc_Control
                     Port = 8000,
                     GlobalDriveConfig = true,
                     ShowNetworkDrives = true,
-                    ShowUnreadyDrives = true
+                    ShowUnreadyDrives = true,
+                    LongVersion = true,
                 };
 
                 string jsonString = JsonSerializer.Serialize(defaultConfig, new JsonSerializerOptions { WriteIndented = true });
@@ -66,6 +68,7 @@ namespace Disc_Control
                     GlobalDriveConfig = configData.GlobalDriveConfig;
                     ShowNetworkDrives = configData.ShowNetworkDrives;
                     ShowUnreadyDrives = configData.ShowUnreadyDrives;
+                    LongVersion = configData.LongVersion;
                 }
             }
             catch (FileNotFoundException)
@@ -91,6 +94,7 @@ namespace Disc_Control
             public bool GlobalDriveConfig { get; set; }
             public bool ShowNetworkDrives { get; set; }
             public bool ShowUnreadyDrives { get; set; }
+            public bool LongVersion { get; set; }
         }
     }
 }

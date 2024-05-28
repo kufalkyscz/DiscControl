@@ -111,33 +111,68 @@ namespace Disc_Control
 
         public static string ToConsole()
         {
+            var config = new Config();
+            bool LongVersion = config.LongVersion;
 
-            string information = "Drive         FreeSpace (GB)       %FreeSpace       UsedSpace (GB)       TotalSpace (GB)     FileSystem     DriveType          Name       Serial Number\n";
-            information += "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\r\n";
-            try
+            if (LongVersion == true)
             {
-                var drives = Drive.GetDrives();
-                foreach (var drive in drives.Values)
+                string information = "Drive         FreeSpace (GB)       %FreeSpace       UsedSpace (GB)       TotalSpace (GB)     FileSystem     DriveType          Name       Serial Number\n";
+                information += "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\r\n";
+                try
                 {
-                    string driveInfo;
-                    if (drive.FreeSpacePercentage != 0)
+                    var drives = Drive.GetDrives();
+                    foreach (var drive in drives.Values)
                     {
+                        string driveInfo;
+                        if (drive.FreeSpacePercentage != 0)
+                        {
 
-                        driveInfo = $"{drive.Name,-10} {drive.FreeSpace,15:F2}  {drive.FreeSpacePercentage,15:F2}% {drive.UsedSpace,20:F2} {drive.TotalSpace,15:F2}  {drive.FileSystem,15}  {drive.DriveType,15}  {drive.VolumeLabel,15}  {drive.SerialNumber,15}";
+                            driveInfo = $"{drive.Name,-10} {drive.FreeSpace,15:F2}  {drive.FreeSpacePercentage,15:F2}% {drive.UsedSpace,20:F2} {drive.TotalSpace,15:F2}  {drive.FileSystem,15}  {drive.DriveType,15}  {drive.VolumeLabel,15}  {drive.SerialNumber,15}";
 
+                        }
+                        else
+                        {
+                            driveInfo = $"{drive.Name,-10} {"N/A",15}  {"N/A",15} {"N/A",20} {"N/A",15}  {"N/A",15}  {drive.DriveType,15}  {"Not Found",15}  {drive.SerialNumber,15}";
+                        }
+                        information += driveInfo + "\n";
                     }
-                    else
-                    {
-                        driveInfo = $"{drive.Name,-10} {"N/A",15}  {"N/A",15} {"N/A",20} {"N/A",15}  {"N/A",15}  {drive.DriveType,15}  {"Not Found",15}  {drive.SerialNumber,15}";
-                    }
-                    information += driveInfo + "\n";
                 }
+                catch (Exception ex)
+                {
+                    information += $"An error occurred: {ex.Message}\n";
+                }
+                return information;
             }
-            catch (Exception ex)
+            else
             {
-                information += $"An error occurred: {ex.Message}\n";
+                string information = "Drive          %FreeSpace       TotalSpace (GB)     FileSystem     Name\n";
+                information += "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - \r\n";
+                try
+                {
+                    var drives = Drive.GetDrives();
+                    foreach (var drive in drives.Values)
+                    {
+                        string driveInfo;
+                        if (drive.FreeSpacePercentage != 0) 
+                        {
+
+                            driveInfo = $"{drive.Name,-10} {drive.FreeSpacePercentage,15:F2}% {drive.TotalSpace,15:F2} {drive.FileSystem,15}  {drive.VolumeLabel,15}";
+
+                        }
+                        else
+                        {
+                            driveInfo = $"{drive.Name,-10} {"N/A",15}  {"N/A",15} {"N/A",15} {"Not Found",15}";
+                        }
+                        information += driveInfo + "\n";
+                    }
+                }
+                catch (Exception ex)
+                {
+                    information += $"An error occurred: {ex.Message}\n";
+                }
+                return information;
             }
-            return information;
+            
         }
     }
 }
