@@ -3,8 +3,8 @@
   "CriticalThreshold": 10,
   "WarningThreshold": 25,
   "Port": 8000,
-  "GlobalDriveConfig": false,
+  "GlobalDriveConfig": true,
   "ShowNetworkDrives": true,
   "ShowUnreadyDrives": true,
-  "LongVersion":  false
+  "LongVersion": true
 }

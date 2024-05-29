@@ -36,7 +36,7 @@ namespace Disc_Control
         public static async Task HandleIncomingConnections()
         {
             string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
-            string projectDirectory = Directory.GetParent(baseDirectory).Parent.Parent.FullName;
+            string projectDirectory = Directory.GetParent(baseDirectory).FullName;
             string configPath = Path.Combine(projectDirectory, "config.json");
             string lessFilePath = Path.Combine(projectDirectory, "main.less");
 

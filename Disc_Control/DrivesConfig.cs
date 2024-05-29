@@ -18,7 +18,7 @@ namespace Disc_Control
         private void LoadBasicValue()
         {
             string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
-            string projectDirectory = Directory.GetParent(baseDirectory).Parent.Parent.FullName;
+            string projectDirectory = Directory.GetParent(baseDirectory).FullName;
             string configPath = Path.Combine(projectDirectory, "config.json");
 
             if (File.Exists(configPath))
@@ -53,7 +53,7 @@ namespace Disc_Control
             try
             {
                 string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
-                string projectDirectory = Directory.GetParent(baseDirectory).Parent.Parent.FullName;
+                string projectDirectory = Directory.GetParent(baseDirectory).FullName;
                 string configPath = Path.Combine(projectDirectory, "drivesconfig.json");
 
                 Dictionary<string, int> drivesConfig = new Dictionary<string, int>();

@@ -24,7 +24,7 @@ namespace Disc_Control
         private void CheckConfig()
         {
             string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
-            string projectDirectory = Directory.GetParent(baseDirectory).Parent.Parent.FullName;
+            string projectDirectory = Directory.GetParent(baseDirectory).FullName;
             string configPath = Path.Combine(projectDirectory, "config.json");
 
             if (!File.Exists(configPath))
@@ -53,7 +53,7 @@ namespace Disc_Control
             try
             {
                 string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
-                string projectDirectory = Directory.GetParent(baseDirectory).Parent.Parent.FullName;
+                string projectDirectory = Directory.GetParent(baseDirectory).FullName;
                 string configPath = Path.Combine(projectDirectory, "config.json");
 
                 string jsonString = File.ReadAllText(configPath);
