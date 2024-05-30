@@ -12,6 +12,7 @@ namespace Disc_Control
         {
             var config = new Config();
             var driveconfig = new DrivesConfig();
+            var css = new CSS();
             int interval = config.Interval;
 
             var serverTask = WebServer.StartServerAsync();

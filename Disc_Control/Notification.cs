@@ -124,7 +124,7 @@ namespace Disc_Control
             }
         }
 
-        private static int GetCriticalThreshold(string driveName)
+        public static int GetCriticalThreshold(string driveName)
         {
             var config = new Config();
             bool globalDriveConfig = config.GlobalDriveConfig;

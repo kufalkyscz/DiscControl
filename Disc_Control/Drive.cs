@@ -92,8 +92,6 @@ namespace Disc_Control
             int critical_threshold = config.CriticalThreshold;
             int warning_threshold = config.WarningThreshold;
 
-
-
             string color = FreeSpacePercentage <= critical_threshold ? "critical_threshold" :
                            FreeSpacePercentage <= warning_threshold ? "warning_threshold" : "normal";
 

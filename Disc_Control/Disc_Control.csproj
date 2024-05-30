@@ -82,6 +82,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Config.cs" />
+    <Compile Include="CSS.cs" />
     <Compile Include="Drive.cs" />
     <Compile Include="DrivesConfig.cs" />
     <Compile Include="DualWriter.cs" />
@@ -92,7 +93,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <None Include="main.less" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="dotless.Core">
