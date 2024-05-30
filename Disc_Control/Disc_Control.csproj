@@ -92,8 +92,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <None Include="config.json" />
-    <None Include="drivesconfig.json" />
     <None Include="main.less" />
   </ItemGroup>
   <ItemGroup>

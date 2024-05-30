@@ -2,17 +2,21 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
+using System.Text.Json;
 
 namespace Disc_Control
 {
     internal static class Notification
     {
         private static readonly Dictionary<string, double> LastNotifiedPercentages = new Dictionary<string, double>();
+        private static Dictionary<string, int> DriveCriticalThresholds = new Dictionary<string, int>();
         private const string EventSourceName = "DiscControlApp";
         private const string EventLogName = "Application";
 
         static Notification()
         {
+            LoadConfigurations();
             try
             {
                 if (!EventLog.SourceExists(EventSourceName))
@@ -26,15 +30,15 @@ namespace Disc_Control
             }
         }
 
-        public static void Show(string volumeLabel, double fsPercentage)
+        public static void Show(string driveName, double fsPercentage)
         {
-            if (ShouldNotify(volumeLabel, fsPercentage))
+            if (ShouldNotify(driveName, fsPercentage))
             {
-                EventLogEntryType? logType = DetermineLogType(volumeLabel, fsPercentage);
+                EventLogEntryType? logType = DetermineLogType(driveName, fsPercentage);
 
                 if (logType.HasValue)
                 {
-                    string message = $"Drive '{volumeLabel}' has reached {fsPercentage:F2}% of free space.";
+                    string message = $"Drive '{driveName}' has reached {fsPercentage:F2}% of free space.";
                     new ToastContentBuilder()
                         .AddArgument("action", "viewConversation")
                         .AddArgument("conversationId", 9813)
@@ -43,56 +47,51 @@ namespace Disc_Control
 
                     LogToEventViewer(message, logType.Value);
 
-                    LastNotifiedPercentages[volumeLabel] = fsPercentage;
+                    LastNotifiedPercentages[driveName] = fsPercentage;
                 }
             }
         }
 
-        private static bool ShouldNotify(string volumeLabel, double fsPercentage)
+        private static bool ShouldNotify(string driveName, double fsPercentage)
         {
-            if (!LastNotifiedPercentages.ContainsKey(volumeLabel))
+            if (!LastNotifiedPercentages.ContainsKey(driveName))
             {
+                LastNotifiedPercentages[driveName] = fsPercentage;
                 return true;
             }
 
-            double lastPercentage = LastNotifiedPercentages[volumeLabel];
-            var config = new Config();
-            int WarningThreshold = config.WarningThreshold;
-            int CriticalThreshold = config.CriticalThreshold;
+            double lastPercentage = LastNotifiedPercentages[driveName];
+            int warningThreshold = GetWarningThreshold(driveName);
+            int criticalThreshold = GetCriticalThreshold(driveName); 
 
-            return (lastPercentage > WarningThreshold && fsPercentage <= WarningThreshold) ||
-                   (lastPercentage > CriticalThreshold && fsPercentage <= CriticalThreshold) ||
-                   (lastPercentage <= CriticalThreshold && fsPercentage > CriticalThreshold) ||
-                   (lastPercentage <= WarningThreshold && fsPercentage > WarningThreshold) ||
-                   (lastPercentage <= CriticalThreshold && fsPercentage > WarningThreshold);
+            bool shouldNotify = (lastPercentage > warningThreshold && fsPercentage <= warningThreshold) ||
+                                (lastPercentage > criticalThreshold && fsPercentage <= criticalThreshold) ||
+                                (lastPercentage <= criticalThreshold && fsPercentage > criticalThreshold) ||
+                                (lastPercentage <= warningThreshold && fsPercentage > warningThreshold && fsPercentage > criticalThreshold) ||
+                                (lastPercentage > warningThreshold && fsPercentage <= criticalThreshold);
+
+            return shouldNotify;
         }
 
-        private static EventLogEntryType? DetermineLogType(string volumeLabel, double fsPercentage)
+        private static EventLogEntryType? DetermineLogType(string driveName, double fsPercentage)
         {
-            var config = new Config();
-            int WarningThreshold = config.WarningThreshold;
-            int CriticalThreshold = config.CriticalThreshold;
+            int warningThreshold = GetWarningThreshold(driveName);
+            int criticalThreshold = GetCriticalThreshold(driveName);
 
-            double lastPercentage = LastNotifiedPercentages.ContainsKey(volumeLabel) ? LastNotifiedPercentages[volumeLabel] : double.MaxValue;
-
-            if (fsPercentage <= CriticalThreshold)
+            if (fsPercentage <= criticalThreshold)
             {
                 return EventLogEntryType.Warning;
             }
-            if (fsPercentage <= WarningThreshold)
+            if (fsPercentage <= warningThreshold)
             {
-                if (lastPercentage <= CriticalThreshold && fsPercentage > CriticalThreshold)
-                {
-                    return EventLogEntryType.Information; 
-                }
                 return EventLogEntryType.Warning;
             }
-            if (fsPercentage > WarningThreshold)
+            if (fsPercentage > warningThreshold)
             {
                 return EventLogEntryType.Information;
             }
 
-            return null; 
+            return null;
         }
 
         static void LogToEventViewer(string message, EventLogEntryType logType)
@@ -107,5 +106,49 @@ namespace Disc_Control
                 Console.WriteLine($"Error writing to event log: {ex.Message}");
             }
         }
-    }    
+
+        private static void LoadConfigurations()
+        {
+            string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
+            string projectDirectory = Directory.GetParent(baseDirectory).FullName;
+            string configPath = Path.Combine(projectDirectory, "drivesconfig.json");
+
+            try
+            {
+                var configJson = File.ReadAllText(configPath);
+                DriveCriticalThresholds = JsonSerializer.Deserialize<Dictionary<string, int>>(configJson);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error loading configurations: {ex.Message}");
+            }
+        }
+
+        private static int GetCriticalThreshold(string driveName)
+        {
+            var config = new Config();
+            bool globalDriveConfig = config.GlobalDriveConfig;
+            int defaultCriticalThreshold = config.CriticalThreshold;
+
+            if (globalDriveConfig  == false && DriveCriticalThresholds.TryGetValue(driveName, out int specificThreshold))
+            {
+                return specificThreshold;
+            }
+
+            return defaultCriticalThreshold;
+        }
+
+        public static int GetWarningThreshold(string driveName)
+        {
+            var config = new Config();
+            bool globalDriveConfig = config.GlobalDriveConfig;
+            int defaultWarningThreshold = config.WarningThreshold;
+            if (globalDriveConfig == false)
+            {
+                int warningThreshold = GetCriticalThreshold(driveName) + 15;
+                return warningThreshold;
+            }
+            return defaultWarningThreshold;
+        }
+    }
 }
